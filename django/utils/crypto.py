@@ -12,7 +12,7 @@ import time
 
 from django.conf import settings
 from django.utils import six
-from django.utils.encoding import force_bytes
+from django.utils.encoding import force_bytes, smart_str
 from django.utils.six.moves import range
 
 try:
@@ -73,7 +73,12 @@ def get_random_string(length=12,
                     time.time(),
                     settings.SECRET_KEY)).encode('utf-8')
             ).digest())
-    return ''.join(random.choice(allowed_chars) for i in range(length))
+    random_string = ''.join([random.choice(allowed_chars) for i in range(length)])
+    # apply smart_str as in this file 'from __future__ import unicode_literals' is
+    # used, but we use python version < 3  => not all string are unicode
+    # It fixes files path building in get_available_name in django/core/files/storage.py
+    random_string = smart_str(random_string)
+    return random_string
 
 
 if hasattr(hmac, "compare_digest"):
